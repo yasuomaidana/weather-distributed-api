@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from countries.country_finder import find_country
+from wather_api_caller.countries.country_finder import find_country
 
 
 class Test(TestCase):
