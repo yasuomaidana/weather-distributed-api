@@ -1,23 +1,24 @@
-from typing import List, Union, Optional
+from typing import List, Union
 
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.database import Database
 
+from datetime import datetime
+
 from wather_api_caller.configuration.Configuration import Configuration
 from wather_api_caller.data.WeatherData import WeatherData
 
 
-def get_database(config: Configuration) -> Database:
-    connection_string = f"mongodb+srv://yasuo_distributed:{password}@weather.lriaphk.mongodb.net/?retryWrites=true&w=majority"
-    client = MongoClient(connection_string)
-    return client["Weather"]
+def get_database(database_config: dict) -> Database:
+    dbname = database_config["name"]
+    client = MongoClient(database_config["connection_string"])
+    return client[dbname]
 
 
-def define_collection_unique(db: Database, collection_name: str, prop: Optional[List] = None) -> Collection:
-    collection = db[collection_name]
-    if prop is not None:
-        collection.create_index(prop, unique=True)
+def define_collection(db: Database, config: dict) -> Collection:
+    collection = db[config["collection"]]
+    collection.create_index(config["unique"], unique=True)
     return collection
 
 
@@ -29,16 +30,40 @@ def insert_data(client: Collection, data: Union[WeatherData, List[WeatherData]])
         client.insert_many(data)
 
 
+def get_weather_by_date(collection: Collection, date: datetime):
+    query = {'date': date}
+    return list(collection.find(query))
+
+
+def delete_weather_data_before_date(collection: Collection, date: datetime):
+    query = {'date': {"$lt": date}}
+    collection.delete_many(query)
+
+
 def get_weather_data(client: Collection):
-    pass
+    return client.find()
 
 
 if __name__ == "__main__":
-    with open('auth.txt') as f:
-        password = f.readline()
-    f.close()
-    dbname = get_database(password)
-    test_collection = define_collection_unique(dbname, "test", ['name', 'short_name'])
+    db_config = Configuration("config_database_test").get_database()
+    database = get_database(db_config)
+    test_collection = define_collection(database, db_config)
     test_collection.drop()
-    weather = WeatherData("Beijing", "CN", "Partly cloudy", 36.5, 80)
-    insert_data(test_collection, weather)
+    weather0 = WeatherData("Beijing", "CNs", "Partly cloudy", 36.5, 80, '2023-07-24')
+    weather1 = WeatherData("Beijing", "CN", "Partly cloudy", 36.5, 80, '2023-07-24')
+    weather2 = WeatherData("Beijing", "CN", "Partly cloudy", 36.5, 80, '2023-07-25')
+    weather3 = WeatherData("Beijing", "CN", "Partly cloudy", 36.5, 80, '2023-07-26')
+    print([weather0, weather1, weather2, weather3])
+    insert_data(test_collection, [weather1, weather2, weather3])
+    print("---All---")
+    [print(i) for i in get_weather_data(test_collection)]
+    print("2023-07-25")
+    print(get_weather_by_date(test_collection, datetime.strptime("2023-07-25", '%Y-%m-%d')))
+    print("2023-07-28")
+    print(get_weather_by_date(test_collection, datetime.strptime("2023-07-28", '%Y-%m-%d')))
+    print("Removing Dates before 2023-07-25")
+    print(delete_weather_data_before_date(test_collection, datetime.strptime("2023-07-25", '%Y-%m-%d')))
+    print("---All after removing---")
+    [print(i) for i in get_weather_data(test_collection)]
+    print("Today")
+    print(datetime.today().date())
