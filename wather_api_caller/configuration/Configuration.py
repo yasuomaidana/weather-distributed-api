@@ -14,7 +14,3 @@ class Configuration:
         )
         return self.config["database"]
 
-
-if __name__ == "__main__":
-    config = Configuration("example")
-    print(type(config.get_database()))
