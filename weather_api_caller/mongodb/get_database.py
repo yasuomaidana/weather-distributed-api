@@ -6,7 +6,7 @@ from pymongo.database import Database
 
 from datetime import datetime
 
-from wather_api_caller.data.WeatherData import WeatherData
+from weather_api_caller.data.WeatherData import WeatherData
 
 
 def get_database(database_config: dict) -> Database:

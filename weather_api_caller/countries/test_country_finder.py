@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from wather_api_caller.countries.country_finder import find_country, CountryName
+from weather_api_caller.countries.country_finder import find_country, CountryName
 
 
 class Test(TestCase):

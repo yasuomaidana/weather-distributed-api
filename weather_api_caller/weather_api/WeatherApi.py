@@ -2,9 +2,9 @@ from typing import List
 
 import requests
 
-from wather_api_caller.configuration.Configuration import Configuration
-from wather_api_caller.countries.country_finder import find_country
-from wather_api_caller.data.WeatherData import WeatherData
+from weather_api_caller.configuration.Configuration import Configuration
+from weather_api_caller.countries.country_finder import find_country
+from weather_api_caller.data.WeatherData import WeatherData
 from datetime import datetime
 
 

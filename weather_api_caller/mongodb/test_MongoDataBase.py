@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from wather_api_caller.data.WeatherData import WeatherData
-from wather_api_caller.mongodb.MongoDataBase import MongoDataBase
+from weather_api_caller.data.WeatherData import WeatherData
+from weather_api_caller.mongodb.MongoDataBase import MongoDataBase
 from datetime import datetime
 
 

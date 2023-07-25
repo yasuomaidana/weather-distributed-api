@@ -1,8 +1,8 @@
 from get_database import *
 from datetime import datetime
 
-from wather_api_caller.configuration.Configuration import Configuration
-from wather_api_caller.data.WeatherData import cast_dict_to_weather_data
+from weather_api_caller.configuration.Configuration import Configuration
+from weather_api_caller.data.WeatherData import cast_dict_to_weather_data
 
 
 class MongoDataBase:
