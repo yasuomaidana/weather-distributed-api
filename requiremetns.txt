@@ -1,3 +1,4 @@
 pymongo[srv]
 PyYAML
 pandas
+requests
