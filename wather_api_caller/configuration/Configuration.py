@@ -14,3 +14,6 @@ class Configuration:
         )
         return self.config["database"]
 
+    def get_api(self) -> dict:
+        return self.config["api"]
+
