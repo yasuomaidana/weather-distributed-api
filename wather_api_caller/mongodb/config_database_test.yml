@@ -1,0 +1,10 @@
+database:
+  user: yasuo_distributed
+  password: JwL4QSFbUIFgyPwv
+  name: Weather
+  collection: test
+  unique:
+    - date
+    - short_name
+    - name
+  connection_string: "mongodb+srv://{user}:{password}@weather.lriaphk.mongodb.net/?retryWrites=true&w=majority/"
