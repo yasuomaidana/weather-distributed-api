@@ -8,9 +8,11 @@ def cast_dict_to_weather_data(data: dict) -> 'WeatherData':
 
 
 class WeatherData:
-    def __init__(self, name: str, short_name: str, weather_status: str, temperature: float, humidity: float,
-                 date: Union[str, datetime]):
-        self.name = name
+    def __init__(self, city_name: str, country_name: str, short_name: str, weather_status: str, temperature: float,
+                 humidity: float, date: Union[str, datetime]):
+
+        self.city_name = city_name
+        self.country_name = country_name
         self.short_name = short_name
         self.weather_status = weather_status
         self.temperature = temperature

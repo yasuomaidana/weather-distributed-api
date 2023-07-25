@@ -14,10 +14,10 @@ class TestMongoDataBase(TestCase):
 
     def setUp(self):
         self.mongoDb.collection.drop()
-        weather0 = WeatherData("Beijing", "CNs", "Partly cloudy", 36.5, 80, '2023-07-24')
-        weather1 = WeatherData("Beijing", "CN", "Partly cloudy", 36.5, 80, '2023-07-24')
-        weather2 = WeatherData("Beijing", "CN", "Partly cloudy", 36.5, 80, '2023-07-25')
-        weather3 = WeatherData("Beijing", "CN", "Partly cloudy", 36.5, 80, '2023-07-26')
+        weather0 = WeatherData("Beijing", "", "CNs", "Partly cloudy", 36.5, 80, '2023-07-24')
+        weather1 = WeatherData("Beijing", "", "CN", "Partly cloudy", 36.5, 80, '2023-07-24')
+        weather2 = WeatherData("Beijing", "", "CN", "Partly cloudy", 36.5, 80, '2023-07-25')
+        weather3 = WeatherData("Beijing", "", "CN", "Partly cloudy", 36.5, 80, '2023-07-26')
         self.mongoDb.insert_weather([weather0, weather1, weather2, weather3])
 
     def test_get_weather_by_date(self):
