@@ -1,0 +1,6 @@
+database:
+  password: password
+  config:
+    unique:
+      - name
+      - short_name
