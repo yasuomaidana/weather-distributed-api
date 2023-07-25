@@ -7,8 +7,7 @@ class Configuration:
             self.config = yaml.load(f, Loader=yaml.FullLoader)
         f.close()
 
-    def get_database(self):
-
+    def get_database(self) -> dict:
         self.config['database']['connection_string'] = self.config['database']['connection_string'].format(
             user=self.config['database']['user'],
             password=self.config['database']['password']
@@ -18,4 +17,4 @@ class Configuration:
 
 if __name__ == "__main__":
     config = Configuration("example")
-    print(config.get_database())
+    print(type(config.get_database()))
