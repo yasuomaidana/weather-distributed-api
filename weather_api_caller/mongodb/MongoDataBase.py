@@ -19,8 +19,19 @@ class MongoDataBase:
     def get_weather_by_date_and_place(self, date: datetime, shortname: str):
         single_weather = self.collection.find_one({'date': date, 'short_name': shortname})
         if single_weather:
-            return cast_dict_to_weather_data(single_weather.__dict__)
+            return cast_dict_to_weather_data(dict(single_weather))
         return None
+
+    def get_existing_weather(self, date: datetime, shortname: str) -> WeatherData | None:
+        weather = self.collection.find_one({'date': {"$gte": date}, 'short_name': shortname})
+        if weather:
+            return cast_dict_to_weather_data(dict(weather))
+        else:
+            return None
+
+    def get_similar_weathers(self, date: datetime, weather_status: str):
+        weathers = self.collection.find({'date': {"$gte": date}, 'weather_status': weather_status})
+        return [cast_dict_to_weather_data(i) for i in weathers]
 
     def get_weather_by_date(self, date: datetime):
         return [cast_dict_to_weather_data(i) for i in get_weather_by_date(self.collection, date)]
