@@ -20,6 +20,10 @@ class TestMongoDataBase(TestCase):
         weather3 = WeatherData("Beijing", "", "CN", "Partly cloudy", 36.5, 80, '2023-07-26')
         self.mongoDb.insert_weather([weather0, weather1, weather2, weather3])
 
+    @classmethod
+    def tearDownClass(cls):
+        cls.mongoDb.clean()
+
     def test_get_weather_by_date(self):
         d24 = self.mongoDb.get_weather_by_date(toDate('2023-07-24'))
         self.assertIsInstance(d24[0], WeatherData)
