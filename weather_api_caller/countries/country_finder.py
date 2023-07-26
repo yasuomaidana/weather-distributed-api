@@ -6,7 +6,7 @@ import pkg_resources
 import pandas as pd
 
 file_path = pkg_resources.resource_filename(__name__, "countries.csv")
-countries = pd.read_csv(file_path)
+countries = pd.read_csv(file_path, na_values=[], keep_default_na=False)
 CountryName = namedtuple("CountryName", ["city_name", "short_name", "country", "coordinate"])
 
 
