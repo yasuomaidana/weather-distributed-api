@@ -2,3 +2,4 @@ pymongo[srv]
 PyYAML
 pandas
 requests
+scikit-learn
