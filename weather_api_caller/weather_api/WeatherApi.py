@@ -17,10 +17,27 @@ class WeatherApi:
             'X-RapidAPI-Host': config["host"]
         }
 
-    def get_country_weather(self, place: str) -> List[WeatherData]:
+    def call_api(self, query):
+        res = requests.get(self.endpoint, headers=self.header, params=query)
+        data = res.json()
+        forecast = data["forecast"]
+        place_weather = []
+        for day in forecast["forecastday"]:
+            date = day["date"]
+            date = datetime.strptime(date, '%Y-%m-%d')
+            day = day["day"]
+            temp = day["avgtemp_c"]
+            status = day["condition"]["text"]
+            humidity = day["avghumidity"]
+            weather = WeatherData(data["location"]["name"], data["location"]["country"], "From Query", status,
+                                  temp, humidity, date)
+            place_weather.append(weather)
+        return place_weather
+
+    def get_country_weather(self, place: str) -> list[WeatherData] | None:
         country = find_country(place)
         if country is None:
-            return []
+            return None
         query = {"q": country.coordinate, "days": "3"}
         res = requests.get(self.endpoint, headers=self.header, params=query)
         data = res.json()
