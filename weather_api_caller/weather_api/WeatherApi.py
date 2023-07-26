@@ -21,7 +21,7 @@ class WeatherApi:
         country = find_country(place)
         if country is None:
             return []
-        query = {"q": country.city_name, "days": "3"}
+        query = {"q": country.coordinate, "days": "3"}
         res = requests.get(self.endpoint, headers=self.header, params=query)
         data = res.json()
         forecast = data["forecast"]
