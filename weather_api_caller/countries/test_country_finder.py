@@ -20,5 +20,6 @@ class Test(TestCase):
     def test_get_all_countries(self):
         countries = get_all_countries()
         self.assertEqual(len(countries), 198)
-
-
+        for i_name, _ in countries:
+            country = find_country(i_name)
+            self.assertEqual(i_name, country.short_name)
