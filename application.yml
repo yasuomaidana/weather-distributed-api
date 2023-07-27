@@ -1,0 +1,15 @@
+database:
+  user: username
+  password: password
+  name: dbname
+  collection: collection_name
+  unique:
+    - unique_field_1
+    - unique_2
+    - unique_3
+  connection_string: "mongodb+srv://{user}:{password}@weather.lriaphk.mongodb.net/?retryWrites=true&w=majority"
+
+api:
+  key: "api-key"
+  host: "api-host"
+  request: "/forecast.json"
