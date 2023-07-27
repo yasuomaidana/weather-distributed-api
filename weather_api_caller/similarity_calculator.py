@@ -26,21 +26,21 @@ def calculate_similarity(weathers: list[WeatherData], reference: WeatherData, nu
         "date": [reference.date]
     })
 
+    def temperature_normalizer(x):
+        return np.exp(-(x - reference.temperature)**2)
+
     def humidity_normalizer(x):
-        if x - reference.humidity == 0:
-            return 1
-        return np.exp(-(x - reference.humidity) ** 2)
+        return np.exp(-(x - reference.humidity)**2)
 
-    weathers_df["humidity_i"] = weathers_df["humidity"].apply(humidity_normalizer)
-    ref_df["humidity_i"] = ref_df["humidity"].apply(humidity_normalizer)
+    weathers_df["humidity_i"] = weathers_df["humidity"] \
+        .apply(humidity_normalizer)
+    ref_df["humidity_i"] = ref_df["humidity"] \
+        .apply(humidity_normalizer)
 
-    def temp_normalizer(x):
-        if x - reference.temperature == 0:
-            return 1
-        return np.exp(-(x - reference.temperature) ** 2)
-
-    weathers_df["temperature_i"] = weathers_df["temperature"].apply(temp_normalizer)
-    ref_df["temperature_i"] = ref_df["temperature"].apply(temp_normalizer)
+    weathers_df["temperature_i"] = weathers_df["temperature"] \
+        .apply(temperature_normalizer)
+    ref_df["temperature_i"] = ref_df["temperature"] \
+        .apply(temperature_normalizer)
 
     weathers_x = weathers_df[["humidity_i", "temperature_i"]].values
     weather_y = ref_df[["humidity_i", "temperature_i"]].values
@@ -50,6 +50,6 @@ def calculate_similarity(weathers: list[WeatherData], reference: WeatherData, nu
 
     weathers_df.drop(columns=["humidity_i", "temperature_i"], inplace=True)
 
-    similar = weathers_df.sort_values(by="similarity", ascending=False).head(number_of_elements+1)
+    similar = weathers_df.sort_values(by="similarity", ascending=False).head(number_of_elements + 1)
     similar.drop(columns=["similarity"], inplace=True)
     return similar
