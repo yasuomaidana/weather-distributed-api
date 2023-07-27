@@ -14,7 +14,7 @@ def get_similar(place: str, config: str = "config_test", date=get_today(), quant
     place = find_country(place)
     if place is None:
         print("This place is not supported")
-        return
+        exit()
 
     api_caller = WeatherCaller(config)
     reference = api_caller.get_weather(place.short_name, date)
