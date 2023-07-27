@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from weather_api_caller.WeatherCaller import WeatherCaller
 from weather_api_caller.similarity_calculator import calculate_similarity
-import numpy as np
+
 
 class TestWeatherCaller(TestCase):
     def test_get_weather(self):
