@@ -24,7 +24,7 @@ class WeatherCaller:
                 self.mongo_db.insert_weather(weathers)
 
     def get_similar_weather(self, shortname: str, date=get_today()) -> list[WeatherData]:
-        data = self.get_weather(shortname)
+        data = self.get_weather(shortname, date)
         if data is None:
             self.mongo_db.delete_old_weather(date)
             self.update_all_weathers(date)
