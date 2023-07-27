@@ -48,7 +48,8 @@ def calculate_similarity(weathers: list[WeatherData], reference: WeatherData, nu
     sim = np.array(cosine_similarity(weathers_x, weather_y)).reshape(-1)
     weathers_df["similarity"] = sim
 
-    weathers_df.drop(columns=["humidity_i", "temperature"])
+    weathers_df.drop(columns=["humidity_i", "temperature_i"], inplace=True)
 
-    similar = weathers_df.sort_values(by="similarity", ascending=False).head(number_of_elements)
+    similar = weathers_df.sort_values(by="similarity", ascending=False).head(number_of_elements+1)
+    similar.drop(columns=["similarity"], inplace=True)
     return similar

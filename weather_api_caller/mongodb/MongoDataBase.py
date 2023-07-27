@@ -30,7 +30,7 @@ class MongoDataBase:
             return None
 
     def get_similar_weathers(self, date: datetime, weather_status: str):
-        weathers = self.collection.find({'date': {"$gte": date}, 'weather_status': weather_status})
+        weathers = self.collection.find({'date': date, 'weather_status': weather_status})
         return [cast_dict_to_weather_data(i) for i in weathers]
 
     def get_weather_by_date(self, date: datetime):
