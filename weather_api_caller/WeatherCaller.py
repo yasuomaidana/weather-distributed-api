@@ -1,3 +1,4 @@
+from tqdm import tqdm
 from weather_api_caller.countries.country_finder import get_all_countries, find_country
 from weather_api_caller.data.WeatherData import WeatherData
 from weather_api_caller.mongodb.MongoDataBase import MongoDataBase
@@ -16,7 +17,8 @@ class WeatherCaller:
         self.api = WeatherApi(configuration)
 
     def update_all_weathers(self, date: datetime = get_today()):
-        for short_name, coordinate in get_all_countries():
+        print("Updating weather information")
+        for short_name, coordinate in tqdm(get_all_countries()):
             if self.mongo_db.get_existing_weather(date, short_name):
                 continue
             weathers = self.api.get_country_weather(short_name)
