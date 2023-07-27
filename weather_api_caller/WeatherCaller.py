@@ -30,7 +30,7 @@ class WeatherCaller:
         if data is None:
             self.mongo_db.delete_old_weather(date)
             self.update_all_weathers(date)
-            data = self.mongo_db.get_weather_by_date_and_place(date, find_country(shortname).short_name)
+            data = self.get_weather(shortname, date)
         similar_weather = self.mongo_db.get_similar_weathers(date, data.weather_status)
         return similar_weather
 

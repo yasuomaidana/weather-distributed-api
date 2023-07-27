@@ -18,6 +18,11 @@ def get_similar(place: str, config: str = "config_test", date=get_today(), quant
 
     api_caller = WeatherCaller(config)
     reference = api_caller.get_weather(place.short_name, date)
+
+    if reference is None:
+        api_caller.update_all_weathers()
+        reference = api_caller.get_weather(place.short_name, date)
+
     similar = api_caller.get_similar_weather(place.short_name, date)
 
     similar = calculate_similarity(similar, reference, quantity)
