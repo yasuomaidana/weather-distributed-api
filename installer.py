@@ -46,3 +46,9 @@ def install_required_libraries():
             print(f"Installing {lib}...")
             subprocess.run([sys.executable, "-m", "pip", "install", lib], check=True)
     file.close()
+
+
+if __name__ == "__main__":
+    check_virtual_environment()
+    install_required_libraries()
+    activate_virtual_environment()
