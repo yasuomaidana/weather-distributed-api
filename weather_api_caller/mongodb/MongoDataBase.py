@@ -1,5 +1,3 @@
-from pymongo.errors import DuplicateKeyError
-
 from weather_api_caller.mongodb.get_database import *
 from datetime import datetime
 
