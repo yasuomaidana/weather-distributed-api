@@ -27,10 +27,10 @@ def calculate_similarity(weathers: list[WeatherData], reference: WeatherData, nu
     })
 
     def temperature_normalizer(x):
-        return np.exp(-(x - reference.temperature)**2)
+        return reference.temperature * np.exp(-(x - reference.temperature) ** 2)
 
     def humidity_normalizer(x):
-        return np.exp(-(x - reference.humidity)**2)
+        return np.exp(-(x - reference.humidity) ** 2)
 
     weathers_df["humidity_i"] = weathers_df["humidity"] \
         .apply(humidity_normalizer)
@@ -47,6 +47,8 @@ def calculate_similarity(weathers: list[WeatherData], reference: WeatherData, nu
 
     sim = np.array(cosine_similarity(weathers_x, weather_y)).reshape(-1)
     weathers_df["similarity"] = sim
+
+    weathers_df = weathers_df[weathers_df["similarity"] > 0.9]
 
     weathers_df.drop(columns=["humidity_i", "temperature_i"], inplace=True)
 
