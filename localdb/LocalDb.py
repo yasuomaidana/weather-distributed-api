@@ -46,6 +46,14 @@ class LocalDB:
     def insert_query_history(self, short_name, date: datetime, weather_status: str):
         self.cursor.execute("INSERT INTO QueryHistory (short_name, date, weather_status) VALUES (?, ?, ?)",
                             (short_name, date.strftime('%Y-%m-%d').strip(), weather_status))
+        self.conn.commit()
+
+    def get_history_date(self):
+        self.cursor.execute("SELECT date FROM QueryHistory LIMIT 1")
+        date = self.cursor.fetchone()
+        if date:
+            return datetime.strptime(date[0], '%Y-%m-%d')
+        return
 
     def clear_table(self, table_name: str):
         self.cursor.execute(f"DELETE FROM {table_name}")
