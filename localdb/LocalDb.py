@@ -5,6 +5,13 @@ from typing import Union
 from weather_api_caller.data.WeatherData import WeatherData
 
 
+def cast_from_db(raw) -> WeatherData:
+    _, city_name, country_name, short_name, weather_status, temperature, humidity, date = raw
+    date = datetime.strptime(date, '%Y-%m-%d')
+    return WeatherData(city_name, country_name, short_name,
+                       weather_status, temperature, humidity, date)
+
+
 class LocalDB:
     def __init__(self, db_filename: str = "tiny_weather_db"):
         self.conn = sqlite3.connect(f"{db_filename}.sqlite")
@@ -12,7 +19,8 @@ class LocalDB:
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS QueryHistory (
                     id INTEGER PRIMARY KEY,
                     short_name TEXT UNIQUE,
-                    date TEXT
+                    date TEXT,
+                    weather_status TEXT
                 )''')
 
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS WeatherData (
@@ -28,16 +36,16 @@ class LocalDB:
         self.query_history = "QueryHistory"
         self.weather_data = "WeatherData"
 
-    def get_query_history(self, short_name: str) -> datetime | None:
-        self.cursor.execute("SELECT date FROM QueryHistory WHERE short_name = ?", (short_name,))
+    def get_query_history(self, short_name: str) -> tuple[datetime, str] | None:
+        self.cursor.execute("SELECT date, weather_status FROM QueryHistory WHERE short_name = ?", (short_name,))
         raw_date = self.cursor.fetchone()
         if raw_date:
-            return datetime.strptime(raw_date[0], '%Y-%m-%d')
+            return datetime.strptime(raw_date[0], '%Y-%m-%d'), raw_date[1]
         return None
 
-    def insert_query_history(self, short_name, date: datetime):
-        self.cursor.execute("INSERT INTO QueryHistory (short_name, date) VALUES (?, ?)",
-                            (short_name, date.strftime('%Y-%m-%d').strip()))
+    def insert_query_history(self, short_name, date: datetime, weather_status: str):
+        self.cursor.execute("INSERT INTO QueryHistory (short_name, date, weather_status) VALUES (?, ?, ?)",
+                            (short_name, date.strftime('%Y-%m-%d').strip(), weather_status))
 
     def clear_table(self, table_name: str):
         self.cursor.execute(f"DELETE FROM {table_name}")
@@ -78,12 +86,11 @@ class LocalDB:
                 self.insert_weather(weather)
         self.conn.commit()
 
-    def get_weathers(self) -> list[WeatherData]:
-        self.cursor.execute(f"SELECT * FROM {self.weather_data}")
+    def get_weathers(self, short_name: str, weather_status: str) -> tuple[list[WeatherData], WeatherData]:
+        self.cursor.execute(f"SELECT * FROM {self.weather_data} WHERE weather_status = ?", (weather_status,))
         weather_data = []
         for raw in self.cursor.fetchall():
-            _, city_name, country_name, short_name, weather_status, temperature, humidity, date = raw
-            date = datetime.strptime(date, '%Y-%m-%d')
-            weather_data.append(WeatherData(city_name, country_name, short_name,
-                                            weather_status, temperature, humidity, date))
-        return weather_data
+            weather_data.append(cast_from_db(raw))
+        ref = self.cursor.execute(f"SELECT * FROM {self.weather_data} WHERE  short_name = ? AND weather_status = ?",
+                                  (short_name, weather_status))
+        return weather_data, cast_from_db(ref.fetchone())

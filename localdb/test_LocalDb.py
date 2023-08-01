@@ -24,11 +24,11 @@ class TestLocalDB(TestCase):
     def test_insert_and_clear_query_history(self):
         localdb = self.localdb
         test_date = get_today()
-        localdb.insert_query_history("MX", test_date)
-        self.assertEqual(localdb.get_query_history("MX"), test_date)
+        localdb.insert_query_history("MX", test_date, "sun")
+        self.assertEqual(localdb.get_query_history("MX"), (test_date, "sun"))
         self.assertIsNone(localdb.get_query_history("JP"))
         self.assertEqual(1, localdb.get_history_count())
-        localdb.insert_query_history("JP", test_date)
+        localdb.insert_query_history("JP", test_date, "sun")
         self.assertEqual(2, localdb.get_history_count())
         localdb.clear_history()
         self.assertEqual(0, localdb.get_history_count())
@@ -60,10 +60,12 @@ class TestLocalDB(TestCase):
     def test_get_weathers(self):
         localdb = self.localdb
         weathers = [WeatherData("Beijing", "", "CN", "Partly cloudy", 36.5, 80, '2023-07-24'),
-                    WeatherData("Mexico City", "", "MX", "Partly cloudy", 36.5, 80, '2023-07-25')]
+                    WeatherData("Mexico City", "", "MX", "Partly cloudy", 36.5, 80, '2023-07-25'),
+                    WeatherData("Asuncion", "", "PY", "Sunny", 36.5, 80, '2023-07-25')]
         localdb.insert_weather(weathers)
-        weathers_r = localdb.get_weathers()
+        weathers_r, ref = localdb.get_weathers("MX", "Partly cloudy")
 
         weathers = [vars(i) for i in weathers]
+        weathers.pop(-1)
         weathers_r = [vars(i) for i in weathers_r]
         self.assertEqual(weathers, weathers_r)
