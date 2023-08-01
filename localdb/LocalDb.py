@@ -77,3 +77,13 @@ class LocalDB:
             for weather in data:
                 self.insert_weather(weather)
         self.conn.commit()
+
+    def get_weathers(self) -> list[WeatherData]:
+        self.cursor.execute(f"SELECT * FROM {self.weather_data}")
+        weather_data = []
+        for raw in self.cursor.fetchall():
+            _, city_name, country_name, short_name, weather_status, temperature, humidity, date = raw
+            date = datetime.strptime(date, '%Y-%m-%d')
+            weather_data.append(WeatherData(city_name, country_name, short_name,
+                                            weather_status, temperature, humidity, date))
+        return weather_data

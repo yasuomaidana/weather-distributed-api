@@ -56,3 +56,14 @@ class TestLocalDB(TestCase):
         self.assertEqual(2, localdb.get_weather_count())
         localdb.clear_weather()
         self.assertEqual(0, localdb.get_weather_count())
+
+    def test_get_weathers(self):
+        localdb = self.localdb
+        weathers = [WeatherData("Beijing", "", "CN", "Partly cloudy", 36.5, 80, '2023-07-24'),
+                    WeatherData("Mexico City", "", "MX", "Partly cloudy", 36.5, 80, '2023-07-25')]
+        localdb.insert_weather(weathers)
+        weathers_r = localdb.get_weathers()
+
+        weathers = [vars(i) for i in weathers]
+        weathers_r = [vars(i) for i in weathers_r]
+        self.assertEqual(weathers, weathers_r)
