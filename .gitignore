@@ -7,3 +7,4 @@ __pycache__/
 *.pyw
 .DS_Store
 *_test.yml
+*.sqlite
