@@ -94,11 +94,12 @@ class LocalDB:
                 self.insert_weather(weather)
         self.conn.commit()
 
-    def get_weathers(self, short_name: str, weather_status: str) -> tuple[list[WeatherData], WeatherData]:
-        self.cursor.execute(f"SELECT * FROM {self.weather_data} WHERE weather_status = ?", (weather_status,))
+    def get_weathers(self, short_name: str) -> tuple[list[WeatherData], WeatherData]:
+        ref = self.cursor.execute(f"SELECT * FROM {self.weather_data} WHERE  short_name = ?", (short_name, ))
+        ref = cast_from_db(ref.fetchone())
+        self.cursor.execute(f"SELECT * FROM {self.weather_data} WHERE weather_status = ?", (ref.weather_status,))
         weather_data = []
         for raw in self.cursor.fetchall():
             weather_data.append(cast_from_db(raw))
-        ref = self.cursor.execute(f"SELECT * FROM {self.weather_data} WHERE  short_name = ? AND weather_status = ?",
-                                  (short_name, weather_status))
-        return weather_data, cast_from_db(ref.fetchone())
+
+        return weather_data, ref
