@@ -3,12 +3,17 @@ from weather_api_caller.countries.country_finder import get_all_countries, find_
 from weather_api_caller.data.WeatherData import WeatherData
 from weather_api_caller.mongodb.MongoDataBase import MongoDataBase
 from weather_api_caller.weather_api.WeatherApi import WeatherApi
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 def get_today() -> datetime:
     date = datetime.today().strftime('%Y-%m-%d')
     return datetime.strptime(date, '%Y-%m-%d')
+
+
+def get_tomorrow():
+    one_day = timedelta(days=1)
+    return get_today() + one_day
 
 
 class WeatherCaller:
