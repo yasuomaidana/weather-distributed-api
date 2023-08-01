@@ -19,11 +19,13 @@ def get_weathers(country: CountryName, config: str = "config_test", date=get_tod
     if stored:
         stored_date, weather_status = stored
         if stored_date == date:
-            return localdb.get_weathers(country.short_name, weather_status)
+            return localdb.get_weathers(country.short_name)
     stored_date = localdb.get_history_date()
     if stored_date is None or stored_date != date:
         localdb.clear_weather()
         localdb.clear_history()
+    if localdb.get_weather_count() == 198:
+        return localdb.get_weathers(country.short_name)
     api_caller = WeatherCaller(config)
     reference = api_caller.get_weather(country.short_name, date)
 
