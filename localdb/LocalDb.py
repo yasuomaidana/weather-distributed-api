@@ -1,5 +1,8 @@
 import sqlite3
 from datetime import datetime
+from typing import Union
+
+from weather_api_caller.data.WeatherData import WeatherData
 
 
 class LocalDB:
@@ -14,7 +17,8 @@ class LocalDB:
 
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS WeatherData (
                             id INTEGER PRIMARY KEY,
-                            name TEXT,
+                            city_name TEXT,
+                            country_name TEXT,
                             short_name TEXT UNIQUE,
                             weather_status TEXT,
                             temperature REAL,
@@ -25,7 +29,7 @@ class LocalDB:
         self.weather_data = "WeatherData"
 
     def get_query_history(self, short_name: str) -> datetime | None:
-        self.cursor.execute("SELECT date FROM QueryHistory WHERE short_name = ?", (short_name, ))
+        self.cursor.execute("SELECT date FROM QueryHistory WHERE short_name = ?", (short_name,))
         raw_date = self.cursor.fetchone()
         if raw_date:
             return datetime.strptime(raw_date[0], '%Y-%m-%d')
@@ -47,3 +51,29 @@ class LocalDB:
 
     def clear_history(self):
         return self.clear_table(self.query_history)
+
+    def get_weather_count(self):
+        return self.table_count(self.weather_data)
+
+    def clear_weather(self):
+        return self.clear_table(self.weather_data)
+
+    def check_if_stored_weather(self, data: WeatherData):
+        self.cursor.execute("SELECT 1 FROM WeatherData WHERE short_name = ? AND date = ?",
+                            (data.short_name, data.date.strftime('%Y-%m-%d').strip()))
+        return self.cursor.fetchone() is not None
+
+    def insert_weather(self, data: Union[WeatherData, list[WeatherData]]):
+        if isinstance(data, WeatherData):
+            if not self.check_if_stored_weather(data):
+                values = list(vars(data).values())
+                values[-1] = values[-1].strftime('%Y-%m-%d').strip()
+                self.cursor.execute(
+                    "INSERT INTO WeatherData "
+                    "(city_name, country_name, short_name, weather_status, temperature, humidity, date) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (tuple(values)))
+        else:
+            for weather in data:
+                self.insert_weather(weather)
+        self.conn.commit()
