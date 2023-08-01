@@ -1,5 +1,3 @@
-from typing import List
-
 import requests
 
 from weather_api_caller.configuration.Configuration import Configuration
