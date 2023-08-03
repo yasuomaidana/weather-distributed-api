@@ -7,8 +7,8 @@ from datetime import datetime, timedelta
 
 
 def get_today() -> datetime:
-    date = datetime.today().strftime('%Y-%m-%d')
-    return datetime.strptime(date, '%Y-%m-%d')
+    date = datetime.today().strftime('%Y-%m-%d %H:%M')
+    return datetime.strptime(date, '%Y-%m-%d %H:%M')
 
 
 def get_tomorrow():

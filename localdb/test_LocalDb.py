@@ -35,12 +35,12 @@ class TestLocalDB(TestCase):
 
     def test_insert_weather(self):
         localdb = self.localdb
-        weather = WeatherData("Beijing", "", "CN", "Partly cloudy", 36.5, 80, '2023-07-24')
+        weather = WeatherData("Beijing", "", "CN", "Partly cloudy", 36.5, 80, '2023-07-24 00:00')
         localdb.insert_weather(weather)
         self.assertEqual(1, localdb.get_weather_count())
         localdb.insert_weather(weather)
         self.assertEqual(1, localdb.get_weather_count())
-        weather = WeatherData("Mexico City", "", "MX", "Partly cloudy", 36.5, 80, '2023-07-25')
+        weather = WeatherData("Mexico City", "", "MX", "Partly cloudy", 36.5, 80, '2023-07-25 00:00')
         localdb.insert_weather(weather)
         self.assertEqual(2, localdb.get_weather_count())
         localdb.clear_weather()
@@ -48,8 +48,8 @@ class TestLocalDB(TestCase):
 
     def test_insert_weathers(self):
         localdb = self.localdb
-        weathers = [WeatherData("Beijing", "", "CN", "Partly cloudy", 36.5, 80, '2023-07-24'),
-                    WeatherData("Mexico City", "", "MX", "Partly cloudy", 36.5, 80, '2023-07-25')]
+        weathers = [WeatherData("Beijing", "", "CN", "Partly cloudy", 36.5, 80, '2023-07-24 00:00'),
+                    WeatherData("Mexico City", "", "MX", "Partly cloudy", 36.5, 80, '2023-07-25 00:15')]
         self.localdb.insert_weather(weathers)
         self.assertEqual(2, localdb.get_weather_count())
         self.localdb.insert_weather(weathers)
@@ -59,11 +59,11 @@ class TestLocalDB(TestCase):
 
     def test_get_weathers(self):
         localdb = self.localdb
-        weathers = [WeatherData("Beijing", "", "CN", "Partly cloudy", 36.5, 80, '2023-07-24'),
-                    WeatherData("Mexico City", "", "MX", "Partly cloudy", 36.5, 80, '2023-07-25'),
-                    WeatherData("Asuncion", "", "PY", "Sunny", 36.5, 80, '2023-07-25')]
+        weathers = [WeatherData("Beijing", "", "CN", "Partly cloudy", 36.5, 80, '2023-07-24 00:00'),
+                    WeatherData("Mexico City", "", "MX", "Partly cloudy", 36.5, 80, '2023-07-25 00:00'),
+                    WeatherData("Asuncion", "", "PY", "Sunny", 36.5, 80, '2023-07-25 00:00')]
         localdb.insert_weather(weathers)
-        weathers_r, ref = localdb.get_weathers("MX", "Partly cloudy")
+        weathers_r, ref = localdb.get_weathers("Mexico City")
 
         weathers = [vars(i) for i in weathers]
         weathers.pop(-1)
