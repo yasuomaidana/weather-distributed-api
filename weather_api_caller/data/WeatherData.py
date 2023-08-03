@@ -18,6 +18,6 @@ class WeatherData:
         self.temperature = temperature
         self.humidity = humidity
         if isinstance(date, str):
-            self.date = datetime.strptime(date, '%Y-%m-%d')
+            self.date = datetime.strptime(date, '%Y-%m-%d %H:%M')
         else:
             self.date = date

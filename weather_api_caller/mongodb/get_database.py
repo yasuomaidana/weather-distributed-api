@@ -4,7 +4,7 @@ from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.database import Database
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from weather_api_caller.data.WeatherData import WeatherData
 
@@ -30,7 +30,12 @@ def insert_data(client: Collection, data: Union[WeatherData, List[WeatherData]])
 
 
 def get_weather_by_date(collection: Collection, date: datetime):
-    query = {'date': date}
+    date = date.replace(minute=0, second=0, microsecond=0)
+    next_hour = date.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+    query = {'date': {
+                    '$gte': date,
+                    '$lt': next_hour
+                }}
     return list(collection.find(query))
 
 
