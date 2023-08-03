@@ -1,12 +1,30 @@
 import requests
+from requests import Response
 
 from weather_api_caller.configuration.Configuration import Configuration
-from weather_api_caller.countries.country_finder import find_country
+from weather_api_caller.countries.country_finder import find_country, CountryName
 from weather_api_caller.data.WeatherData import WeatherData
 from datetime import datetime
 
-def handle_call():
-    pass
+
+def handle_call(response: Response):
+    if response.ok:
+        data = response.json()
+        country = find_country(data["location"]["country"])
+        if country is None:
+            for i in data["location"]["country"].split():
+                country = find_country(i)
+                if country:
+                    break
+            if country is None:
+                country = data["location"]["country"]
+                letters = [word[0].upper() for word in country]
+                country = ''.join(letters)
+                country = CountryName(city_name="", short_name=country, country="", coordinate="")
+        return country
+    return None
+
+
 class WeatherApi:
     def __init__(self, configuration_yaml: str):
         config = Configuration(configuration_yaml).get_api()
@@ -18,21 +36,12 @@ class WeatherApi:
 
     def call_api(self, query):
         res = requests.get(self.endpoint, headers=self.header, params=query)
-        if not res.ok:
+        country = handle_call(res)
+        if not country:
             return None
         data = res.json()
         forecast = data["forecast"]
         place_weather = []
-        country = find_country(data["location"]["country"])
-        if country is None:
-            for i in data["location"]["country"].split():
-                country = find_country(i)
-                if country:
-                    break
-            if country is None:
-                country = data["location"]["country"]
-                letters = [word[0].upper() for word in country]
-                country = ''.join(letters)
 
         for day in forecast["forecastday"]:
             for hour in day["hour"]:
