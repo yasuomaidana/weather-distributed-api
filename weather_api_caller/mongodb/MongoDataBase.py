@@ -30,6 +30,7 @@ class MongoDataBase:
         return None
 
     def get_existing_weather(self, date: datetime, city_name: str) -> WeatherData | None:
+        date = date.replace(minute=0, second=0, microsecond=0)
         weather = self.collection.find_one({'date': {"$gte": date}, 'city_name': city_name})
         if weather:
             return cast_dict_to_weather_data(dict(weather))
