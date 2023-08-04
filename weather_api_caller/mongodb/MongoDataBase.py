@@ -14,24 +14,36 @@ class MongoDataBase:
     def insert_weather(self, weather: Union[WeatherData, List[WeatherData]]):
         insert_data(self.collection, weather)
 
-    def get_weather_by_date_and_place(self, date: datetime, city_name: str):
-        date = date.replace(minute=0, second=0, microsecond=0)
+    def get_weather_by_hour_and_place(self, hour: datetime, place: str, place_sel="city_name"):
+        date = hour.replace(minute=0, second=0, microsecond=0)
         next_hour = date.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
-        single_weather = self.collection.find_one(
+        return self.collection.find_one(
             {
                 'date': {
                     '$gte': date,
                     '$lt': next_hour
                 },
-                'city_name': city_name
+                place_sel: place
             })
+
+    def get_weather_by_date_and_place(self, date: datetime, place: str, place_sel="city_name"):
+
+        single_weather = self.get_weather_by_hour_and_place(date, place, place_sel)
+
         if single_weather:
             return cast_dict_to_weather_data(dict(single_weather))
         return None
 
-    def get_existing_weather(self, date: datetime, city_name: str) -> WeatherData | None:
+    def get_existing_weather(self, date: datetime, place: str, key='city_name') -> WeatherData | None:
         date = date.replace(minute=0, second=0, microsecond=0)
-        weather = self.collection.find_one({'date': {"$gte": date}, 'city_name': city_name})
+        next_hour = date.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+        weather = self.collection.find_one(
+            {
+                'date': {
+                    '$lt': next_hour
+                },
+                key: place
+            })
         if weather:
             return cast_dict_to_weather_data(dict(weather))
         else:
