@@ -30,7 +30,6 @@ def insert_data(client: Collection, data: Union[WeatherData, List[WeatherData]])
 
         existing = list(client.find({'city_name': data[0].city_name}))
         existing = [i['date'] for i in existing]
-
         data = [vars(i) for i in data if i.date not in existing]
         if len(data) == 0:
             return
