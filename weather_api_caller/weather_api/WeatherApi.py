@@ -6,7 +6,7 @@ from weather_api_caller.countries.country_finder import find_country, CountryNam
 from weather_api_caller.data.WeatherData import WeatherData
 from difflib import SequenceMatcher
 
-from weather_api_caller.time_utilery.time_builders import convert_to_local
+from weather_api_caller.time_utilery.time_builders import convert_to_local, get_today
 
 
 def handle_find_country(location, fixed: WeatherData = None):
@@ -63,7 +63,7 @@ class WeatherApi:
             'X-RapidAPI-Host': config["host"]
         }
 
-    def call_api(self, query, fixed: CountryName = None):
+    def call_api(self, query, fixed: CountryName = None, now=get_today(), max=3):
         if isinstance(query, str):
             query = {"q": query, "days": "1"}
         res = requests.get(self.endpoint, headers=self.header, params=query)
@@ -73,35 +73,20 @@ class WeatherApi:
         data = res.json()
         forecast = data["forecast"]
         place_weather = []
-
+        i = 0
         for day in forecast["forecastday"]:
             for hour in day["hour"]:
                 date = hour["time_epoch"]
                 date = convert_to_local(date)
+                if now > date:
+                    continue
+                if i > max:
+                    break
+                i += 1
                 temp = hour["temp_c"]
                 status = hour["condition"]["text"]
                 humidity = hour["humidity"]
                 weather = WeatherData(country.city_name, country.country, country.short_name, status,
                                       temp, humidity, date)
                 place_weather.append(weather)
-        return place_weather
-
-    def get_country_weather(self, place: str) -> list[WeatherData] | None:
-        country = find_country(place)
-        if country is None:
-            return None
-        query = {"q": country.coordinate, "days": "3"}
-        res = requests.get(self.endpoint, headers=self.header, params=query)
-        data = res.json()
-        forecast = data["forecast"]
-        place_weather = []
-        for day in forecast["forecastday"]:
-            date = day["date"]
-            date = convert_to_local(date)
-            day = day["day"]
-            temp = day["avgtemp_c"]
-            status = day["condition"]["text"]
-            humidity = day["avghumidity"]
-            weather = WeatherData(country.city_name, country.country, country.short_name, status, temp, humidity, date)
-            place_weather.append(weather)
         return place_weather
