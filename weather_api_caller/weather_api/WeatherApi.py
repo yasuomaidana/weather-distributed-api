@@ -5,24 +5,54 @@ from weather_api_caller.configuration.Configuration import Configuration
 from weather_api_caller.countries.country_finder import find_country, CountryName
 from weather_api_caller.data.WeatherData import WeatherData
 from datetime import datetime
+from difflib import SequenceMatcher
+
+from weather_api_caller.time_utilery.time_builders import convert_to_local
 
 
-def handle_call(response: Response):
+def handle_find_country(location, fixed: WeatherData = None):
+    if fixed:
+        return fixed
+    name = location["name"]
+    country_by_name = None if location["name"] == "" else find_country(location["name"])
+    country_by_region = None if location["region"] == "" else find_country(location["region"])
+    country_by_country = find_country(location["country"])
+
+    country = None
+    if country_by_country:
+        country = country_by_country
+
+    elif country_by_name:
+        country = country_by_name
+
+    elif country_by_region:
+        country = country_by_region
+
+    if country:
+        ratio = SequenceMatcher(None, name, country.city_name).ratio()
+        city_name = country.city_name if ratio < 0.8 else name
+        country._replace(city_name=city_name)
+    return country
+
+
+def handle_call(response: Response, fixed: CountryName = None) -> CountryName:
     if response.ok:
         data = response.json()
-        country = find_country(data["location"]["country"])
+
+        country = handle_find_country(data["location"], fixed)
+
         if country is None:
             for i in data["location"]["country"].split():
                 country = find_country(i)
                 if country:
-                    break
+                    return country
             if country is None:
                 country = data["location"]["country"]
                 letters = [word[0].upper() for word in country]
                 country = ''.join(letters)
-                country = CountryName(city_name="", short_name=country, country="", coordinate="")
+                country = CountryName(city_name=data["location"]["name"], short_name=country,
+                                      country=data["location"]["country"], coordinate="")
         return country
-    return None
 
 
 class WeatherApi:
@@ -34,9 +64,11 @@ class WeatherApi:
             'X-RapidAPI-Host': config["host"]
         }
 
-    def call_api(self, query):
+    def call_api(self, query, fixed: CountryName = None):
+        if isinstance(query, str):
+            query = {"q": query, "days": "1"}
         res = requests.get(self.endpoint, headers=self.header, params=query)
-        country = handle_call(res)
+        country = handle_call(res, fixed)
         if not country:
             return None
         data = res.json()
@@ -45,12 +77,12 @@ class WeatherApi:
 
         for day in forecast["forecastday"]:
             for hour in day["hour"]:
-                date = hour["time"]
-                date = datetime.strptime(date, '%Y-%m-%d %H:%M')
+                date = hour["time_epoch"]
+                date = convert_to_local(date)
                 temp = hour["temp_c"]
                 status = hour["condition"]["text"]
                 humidity = hour["humidity"]
-                weather = WeatherData(data["location"]["name"], data["location"]["country"], country.short_name, status,
+                weather = WeatherData(country.city_name, country.city_name, country.short_name, status,
                                       temp, humidity, date)
                 place_weather.append(weather)
         return place_weather
@@ -66,7 +98,7 @@ class WeatherApi:
         place_weather = []
         for day in forecast["forecastday"]:
             date = day["date"]
-            date = datetime.strptime(date, '%Y-%m-%d')
+            date = convert_to_local(date)
             day = day["day"]
             temp = day["avgtemp_c"]
             status = day["condition"]["text"]
