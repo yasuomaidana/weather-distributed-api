@@ -63,6 +63,13 @@ class MongoDataBase:
             })
         return [cast_dict_to_weather_data(i) for i in weathers]
 
+    def get_by_similar_name(self, name) -> WeatherData | None:
+        query = {"city_name": {"$regex": f"{name}", "$options": "i"}}
+        similar_country = self.collection.find_one(query)
+        if similar_country:
+            return cast_dict_to_weather_data(dict(similar_country))
+        return None
+
     def get_weather_by_date(self, date: datetime):
         return [cast_dict_to_weather_data(i) for i in get_weather_by_date(self.collection, date)]
 
