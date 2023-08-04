@@ -11,9 +11,14 @@ def get_today() -> datetime:
     return datetime.strptime(date, '%Y-%m-%d %H:%M')
 
 
-def get_tomorrow():
+def get_tomorrow(date: datetime = get_today()):
     one_day = timedelta(days=1)
-    return get_today() + one_day
+    return date + one_day
+
+
+def get_yesterday(date: datetime = get_today()):
+    one_day = timedelta(days=1)
+    return date - one_day
 
 
 class WeatherCaller:
@@ -24,20 +29,31 @@ class WeatherCaller:
     def update_all_weathers(self, date: datetime = get_today()):
         print("Updating weather information")
         for short_name, coordinate in tqdm(get_all_countries()):
-            if self.mongo_db.get_existing_weather(date, short_name):
+            country = find_country(short_name)
+            if self.mongo_db.get_existing_weather(date, country.city_name):
                 continue
-            weathers = self.api.get_country_weather(short_name)
+            if self.mongo_db.get_existing_weather(date, country.short_name, key='short_name'):
+                continue
+
+            weathers = self.api.call_api(country.coordinate, country)
+
             if weathers:
                 self.mongo_db.insert_weather(weathers)
 
-    def get_similar_weather(self, shortname: str, date=get_today()) -> list[WeatherData]:
-        data = self.get_weather(shortname, date)
+    def get_similar_weather(self, place: str, date=get_today()) -> list[WeatherData]:
+
+        data = self.get_weather(place, date)
         if data is None:
             self.mongo_db.delete_old_weather(date)
             self.update_all_weathers(date)
-            data = self.get_weather(shortname, date)
+            data = self.get_weather(place, date)
         similar_weather = self.mongo_db.get_similar_weathers(date, data.weather_status)
         return similar_weather
 
-    def get_weather(self, shortname: str, date=get_today()) -> WeatherData:
-        return self.mongo_db.get_weather_by_date_and_place(date, find_country(shortname).short_name)
+    def get_weather(self, place: str, date=get_today()) -> WeatherData:
+        country = find_country(place)
+        if country:
+            return self.mongo_db.get_weather_by_date_and_place(date, country.short_name, "short_name")
+        else:
+            ## Store when new place data
+            return self.api.call_api(place)
