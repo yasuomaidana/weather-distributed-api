@@ -78,3 +78,7 @@ class MongoDataBase:
 
     def clean(self):
         self.collection.drop()
+
+    def get_city_names(self):
+        return self.collection.distinct("city_name")
+
