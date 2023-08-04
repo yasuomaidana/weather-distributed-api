@@ -4,7 +4,6 @@ from requests import Response
 from weather_api_caller.configuration.Configuration import Configuration
 from weather_api_caller.countries.country_finder import find_country, CountryName
 from weather_api_caller.data.WeatherData import WeatherData
-from datetime import datetime
 from difflib import SequenceMatcher
 
 from weather_api_caller.time_utilery.time_builders import convert_to_local
@@ -30,8 +29,8 @@ def handle_find_country(location, fixed: WeatherData = None):
 
     if country:
         ratio = SequenceMatcher(None, name, country.city_name).ratio()
-        city_name = country.city_name if ratio < 0.8 else name
-        country._replace(city_name=city_name)
+        city_name = country.city_name if ratio > 0.9 else name
+        country = country._replace(city_name=city_name)
     return country
 
 
@@ -82,7 +81,7 @@ class WeatherApi:
                 temp = hour["temp_c"]
                 status = hour["condition"]["text"]
                 humidity = hour["humidity"]
-                weather = WeatherData(country.city_name, country.city_name, country.short_name, status,
+                weather = WeatherData(country.city_name, country.country, country.short_name, status,
                                       temp, humidity, date)
                 place_weather.append(weather)
         return place_weather
