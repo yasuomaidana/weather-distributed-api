@@ -25,3 +25,11 @@ class TestWeatherCaller(TestCase):
         x = weather_caller.get_similar_weather("mx")
         sim = calculate_similarity(x, y)
         self.assertIsNotNone(sim)
+
+    def test_get_non_listed(self):
+        weather_caller = WeatherCaller("config_test")
+        weather_caller.update_all_weathers()
+        y = weather_caller.get_weather("tapachula")
+        x = weather_caller.get_similar_weather("tapachula")
+        sim = calculate_similarity(x, y)
+        self.assertIsNotNone(sim)
