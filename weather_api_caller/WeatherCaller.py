@@ -50,10 +50,16 @@ class WeatherCaller:
         similar_weather = self.mongo_db.get_similar_weathers(date, data.weather_status)
         return similar_weather
 
-    def get_weather(self, place: str, date=get_today()) -> WeatherData:
+    def get_weather(self, place: str, date=get_today()) -> WeatherData | None:
         country = find_country(place)
         if country:
             return self.mongo_db.get_weather_by_date_and_place(date, country.short_name, "short_name")
         else:
-            ## Store when new place data
-            return self.api.call_api(place)
+            similar_by_name = self.mongo_db.get_by_similar_name(place)
+            if similar_by_name:
+                return self.mongo_db.get_weather_by_date_and_place(date, similar_by_name.city_name)
+            place_weathers = self.api.call_api(place)
+            if place_weathers:
+                self.mongo_db.insert_weather(place_weathers)
+                return self.mongo_db.get_weather_by_date_and_place(date, place_weathers[0].city_name)
+        return None
