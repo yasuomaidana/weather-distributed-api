@@ -8,8 +8,12 @@ def convert_to_date_time(formatted_time: str):
 
 
 def get_today() -> datetime:
-    date = datetime.today().strftime(time_format)
+    date = datetime.today().replace(minute=0, second=0, microsecond=0).strftime(time_format)
     return convert_to_date_time(date)
+
+
+def get_future_hour(hours, date: datetime = get_today()):
+    return date + timedelta(hours=hours)
 
 
 def get_tomorrow(date: datetime = get_today()):

@@ -2,6 +2,7 @@ from unittest import TestCase
 
 from weather_api_caller.WeatherCaller import WeatherCaller
 from weather_api_caller.similarity_calculator import calculate_similarity
+from weather_api_caller.time_utilery.time_builders import get_future_hour
 
 
 class TestWeatherCaller(TestCase):
@@ -33,3 +34,8 @@ class TestWeatherCaller(TestCase):
         x = weather_caller.get_similar_weather("tapachula")
         sim = calculate_similarity(x, y)
         self.assertIsNotNone(sim)
+
+    def test_updating_another_hour(self):
+        weather_caller = WeatherCaller("config_test")
+        weather_caller.update_all_weathers(get_future_hour(5))
+
