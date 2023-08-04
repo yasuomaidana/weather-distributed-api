@@ -12,46 +12,53 @@ first_row_format = "Capital cities with weather conditions similar to {} today"
 headers = ["Capital city, Country", "Weather Status", "Temperature", "Humidity"]
 
 
-def get_weathers(country: CountryName, config: str = "config_test", date=get_today()) \
+def get_weathers(place: str, config: str = "config_test", date=get_today()) \
         -> tuple[list[WeatherData], WeatherData]:
+
     localdb = LocalDB("tiny_weather_db")
-    stored = localdb.get_query_history(country.short_name)
+
+    api_caller = WeatherCaller(config)
+
+    reference = find_country(place)
+    if reference is None:
+        reference = api_caller.get_weather(place, date)
+
+    if reference is None:
+        print("This place is not supported")
+
+    stored = localdb.get_query_history(reference.city_name)
     if stored:
         stored_date, weather_status = stored
         if stored_date == date:
-            return localdb.get_weathers(country.short_name)
+            return localdb.get_weathers(reference.city_name)
     stored_date = localdb.get_history_date()
     if stored_date is None or stored_date != date:
         localdb.clear_weather()
         localdb.clear_history()
-    if localdb.get_weather_count() == 198:
-        return localdb.get_weathers(country.short_name)
-    api_caller = WeatherCaller(config)
-    reference = api_caller.get_weather(country.short_name, date)
 
-    if reference is None:
-        api_caller.update_all_weathers()
-        reference = api_caller.get_weather(country.short_name, date)
+    stored_cities_in_mongo = api_caller.mongo_db.get_city_names()
+    if localdb.get_weather_count() == len(stored_cities_in_mongo):
+        return localdb.get_weathers(reference.city_name)
 
-    similar = api_caller.get_similar_weather(country.short_name, date)
+    api_caller.mongo_db.delete_old_weather(date)
+    reference = api_caller.get_weather(place, date)
+
+    similar = api_caller.get_similar_weather(reference.city_name, date)
+
     localdb.insert_weather(similar)
-    localdb.insert_query_history(country.short_name, date, reference.weather_status)
+    localdb.insert_query_history(reference.city_name, date, reference.weather_status, reference.country_name)
     localdb.conn.close()
     return similar, reference
 
 
 def get_similar(place: str, config: str = "config_test", date=get_today(), quantity=5):
-    place = find_country(place)
-    if place is None:
-        print("This place is not supported")
-        exit()
 
     similar, reference = get_weathers(place, config, date)
 
     similar = calculate_similarity(similar, reference, quantity)
     similar.drop(columns="date", inplace=True)
 
-    ref_loc: pd.DataFrame = similar.loc[similar['short_name'] == reference.short_name].copy()
+    ref_loc: pd.DataFrame = similar.loc[similar['city_name'] == reference.city_name].copy()
 
     similar.drop(ref_loc.index[0], inplace=True)
     similar["city_name"] = similar["city_name"] + ", " + similar["short_name"]

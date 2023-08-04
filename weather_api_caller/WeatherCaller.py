@@ -18,6 +18,16 @@ class WeatherCaller:
         if len(stored_cities) < 198:
             for short_name, coordinate in tqdm(get_all_countries()):
                 country = find_country(short_name)
+                if self.mongo_db.get_weather_by_date_and_place(date, country.city_name):
+                    continue
+                if self.mongo_db.get_weather_by_date_and_place(date, country.short_name, place_sel='short_name'):
+                    continue
+                weathers = self.api.call_api(country.coordinate, country)
+                if weathers:
+                    self.mongo_db.insert_weather(weathers)
+        else:
+            for short_name, coordinate in tqdm(get_all_countries()):
+                country = find_country(short_name)
                 if country.city_name in stored_cities:
                     stored_cities.remove(country.city_name)
                 if self.mongo_db.get_weather_by_date_and_place(date, country.city_name):
@@ -27,7 +37,6 @@ class WeatherCaller:
                 weathers = self.api.call_api(country.coordinate, country)
                 if weathers:
                     self.mongo_db.insert_weather(weathers)
-        else:
             for city_name in tqdm(stored_cities):
                 if self.mongo_db.get_weather_by_date_and_place(date, city_name):
                     continue
@@ -42,7 +51,9 @@ class WeatherCaller:
             self.update_all_weathers(date)
             data = self.get_weather(place, date)
         similar_weather = self.mongo_db.get_similar_weathers(date, data.weather_status)
-        return similar_weather
+        if len(similar_weather) == 1:
+            self.update_all_weathers()
+        return self.mongo_db.get_similar_weathers(date, data.weather_status)
 
     def check_if_exists(self, name):
         country = find_country(name)
@@ -55,12 +66,17 @@ class WeatherCaller:
     def get_weather(self, place: str, date=get_today()) -> WeatherData | None:
         country = find_country(place)
         if country:
+            weather = self.mongo_db.get_weather_by_date_and_place(date, country.short_name, "short_name")
+            if weather:
+                return weather
+            weather = self.api.call_api(country.coordinate, fixed=country, now=date)
+            self.mongo_db.insert_weather(weather)
             return self.mongo_db.get_weather_by_date_and_place(date, country.short_name, "short_name")
         else:
             similar_by_name = self.mongo_db.get_by_similar_name(place)
             if similar_by_name:
                 return self.mongo_db.get_weather_by_date_and_place(date, similar_by_name.city_name)
-            place_weathers = self.api.call_api(place)
+            place_weathers = self.api.call_api(place, now=date)
             if place_weathers:
                 self.mongo_db.insert_weather(place_weathers)
                 return self.mongo_db.get_weather_by_date_and_place(date, place_weathers[0].city_name)

@@ -49,3 +49,4 @@ class TestMongoDataBase(TestCase):
         self.assertEqual(stored_name, "Tapachula")
         stored_name = self.mongoDb.get_by_similar_name("Tapa").city_name
         self.assertEqual(stored_name, "Tapachula")
+

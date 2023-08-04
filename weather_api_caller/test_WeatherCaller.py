@@ -34,6 +34,8 @@ class TestWeatherCaller(TestCase):
         x = weather_caller.get_similar_weather("tapachula")
         sim = calculate_similarity(x, y)
         self.assertIsNotNone(sim)
+        self.assertEqual(sim.iloc[0]["city_name"], "Tapachula")
+
 
     def test_updating_another_hour(self):
         weather_caller = WeatherCaller("config_test")

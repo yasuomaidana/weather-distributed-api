@@ -22,20 +22,23 @@ class LocalDB:
         self.cursor = self.conn.cursor()
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS QueryHistory (
                     id INTEGER PRIMARY KEY,
-                    city_name TEXT UNIQUE,
+                    city_name TEXT,
+                    country_name TEXT,
                     date TEXT,
-                    weather_status TEXT
+                    weather_status TEXT,
+                    UNIQUE(city_name, country_name, date)
                 )''')
 
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS WeatherData (
                             id INTEGER PRIMARY KEY,
                             city_name TEXT,
                             country_name TEXT,
-                            short_name TEXT UNIQUE,
+                            short_name TEXT,
                             weather_status TEXT,
                             temperature REAL,
                             humidity REAL,
-                            date TEXT
+                            date TEXT,
+                            UNIQUE(city_name, country_name)
                         )''')
         self.query_history = "QueryHistory"
         self.weather_data = "WeatherData"
@@ -47,10 +50,17 @@ class LocalDB:
             return datetime.strptime(raw_date[0], '%Y-%m-%d %H:%M'), raw_date[1]
         return None
 
-    def insert_query_history(self, city_name, date: datetime, weather_status: str):
+    def insert_query_history(self, city_name, date: datetime, weather_status: str, country_name=""):
         date = date.replace(minute=0, second=0, microsecond=0)
-        self.cursor.execute("INSERT INTO QueryHistory (city_name, date, weather_status) VALUES (?, ?, ?)",
-                            (city_name, date.strftime('%Y-%m-%d %H:%M').strip(), weather_status))
+
+        stored = self.get_query_history(city_name)
+        if stored:
+            stored_date, _ = stored
+            if stored_date == date:
+                return
+        self.cursor.execute("INSERT INTO QueryHistory (city_name, date, weather_status, country_name) VALUES (?, ?, "
+                            "?, ?)",
+                            (city_name, date.strftime('%Y-%m-%d %H:%M').strip(), weather_status,country_name))
         self.conn.commit()
 
     def get_history_date(self):
@@ -82,8 +92,9 @@ class LocalDB:
     def check_if_stored_weather(self, data: WeatherData):
         date = data.date
         next_hour = date.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
-        self.cursor.execute("SELECT 1 FROM WeatherData WHERE city_name = ? AND date >= ? AND date < ?",
-                            (data.city_name, cast_hour(date), cast_hour(next_hour)))
+        self.cursor.execute("SELECT 1 FROM WeatherData WHERE city_name = ? AND date >= ? AND date < ? AND "
+                            "country_name = ?",
+                            (data.city_name, cast_hour(date), cast_hour(next_hour), data.country_name))
         return self.cursor.fetchone() is not None
 
     def insert_weather(self, data: Union[WeatherData, list[WeatherData]]):

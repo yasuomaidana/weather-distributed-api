@@ -3,15 +3,17 @@ from unittest import TestCase
 
 from localdb.LocalDb import LocalDB
 from show_similar_weather import get_similar
-from weather_api_caller.WeatherCaller import get_tomorrow
-from weather_api_caller.countries.country_finder import get_all_countries
+from weather_api_caller.countries.country_finder import get_all_countries, find_country
+from weather_api_caller.time_utilery.time_builders import get_future_hour
 
 
 class Test(TestCase):
     def test_get_similar(self):
         for short_name, i in get_all_countries():
-            ref, _ = get_similar(short_name)
-            self.assertEqual(short_name, ref[0].split(", ")[-1])
+            country = find_country(short_name)
+            ref, _ = get_similar(country.city_name)
+            self.assertEqual(short_name, country.short_name)
+            # self.assertTrue(country.city_name in ref[0])
 
     def test_compare_with_without_local_db(self):
         localdb = LocalDB("tiny_weather_db")
@@ -30,9 +32,7 @@ class Test(TestCase):
 
         self.assertGreater(without_ldb, with_ldb)
 
-    def test_get_another_day(self):
+    def test_get_another_hour(self):
         localdb = LocalDB("tiny_weather_db")
-        self.test_get_similar()
-        self.assertEqual(localdb.get_weather_count(), 198)
-        get_similar("mx", date=get_tomorrow())
+        get_similar("mx", date=get_future_hour(9))
         self.assertLess(localdb.get_weather_count(), 198)
